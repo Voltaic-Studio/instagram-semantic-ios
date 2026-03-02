@@ -116,7 +116,7 @@ struct OnboardingView: View {
     private var brandingSection: some View {
         VStack(spacing: 12) {
             Text("INSTASEARCH")
-                .font(.system(.caption, design: .monospaced, weight: .bold))
+                .font(.caption.weight(.bold))
                 .tracking(6)
                 .foregroundStyle(isDark ? .white.opacity(0.5) : .secondary)
                 .opacity(appeared ? 1 : 0)
@@ -154,6 +154,17 @@ struct OnboardingView: View {
     private var instagramButton: some View {
         Button {
             buttonPressed = true
+            viewModel.currentUser = InstagramUser(
+                id: "mock_user",
+                username: "yourname",
+                fullName: "Your Name",
+                profilePicURL: "https://i.pravatar.cc/150?img=5",
+                bio: "Living my best life",
+                followerCount: 1243,
+                followingCount: 892,
+                isPrivate: false,
+                isVerified: false
+            )
             viewModel.isLoggedIn = true
         } label: {
             HStack(spacing: 12) {

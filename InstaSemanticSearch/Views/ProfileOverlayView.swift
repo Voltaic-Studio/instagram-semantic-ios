@@ -78,7 +78,7 @@ struct ProfileOverlayView: View {
                     .font(.title3.bold())
 
                 Text("@\(appViewModel.currentUser?.username ?? "username")")
-                    .font(.system(.subheadline, design: .monospaced))
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
 
                 if let views = viewModel.stats?.profileViews {
@@ -261,7 +261,7 @@ struct UserRow: View {
 
             if let count = user.followerCount {
                 Text(formatCount(count))
-                    .font(.system(.caption, design: .monospaced))
+                    .font(.caption)
                     .foregroundStyle(.secondary)
             }
         }

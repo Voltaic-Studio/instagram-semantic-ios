@@ -168,7 +168,7 @@ struct SearchSheetView: View {
             if !viewModel.recentQueries.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("RECENT")
-                        .font(.system(.caption2, design: .monospaced, weight: .semibold))
+                        .font(.caption2.weight(.semibold))
                         .foregroundStyle(.secondary)
 
                     ForEach(viewModel.recentQueries.prefix(5), id: \.self) { query in
@@ -194,7 +194,7 @@ struct SearchSheetView: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 Text("SUGGESTIONS")
-                    .font(.system(.caption2, design: .monospaced, weight: .semibold))
+                    .font(.caption2.weight(.semibold))
                     .foregroundStyle(.secondary)
 
                 ForEach(viewModel.suggestedQueries, id: \.self) { query in
