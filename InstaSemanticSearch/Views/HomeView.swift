@@ -1,5 +1,18 @@
 import SwiftUI
 
+extension View {
+    @ViewBuilder
+    func adaptiveGlass() -> some View {
+        if #available(iOS 26.0, *) {
+            self.glassEffect(in: .circle)
+        } else {
+            self
+                .background(.ultraThinMaterial, in: Circle())
+                .shadow(color: .primary.opacity(0.15), radius: 12, y: 6)
+        }
+    }
+}
+
 struct HomeView: View {
     @Bindable var appViewModel: AppViewModel
 
@@ -375,17 +388,9 @@ struct HomeView: View {
                 } label: {
                     Image(systemName: "magnifyingglass")
                         .font(.title2.bold())
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.primary)
                         .frame(width: 60, height: 60)
-                        .background(
-                            LinearGradient(
-                                colors: [.purple, .indigo],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .clipShape(Circle())
-                        .shadow(color: .purple.opacity(0.4), radius: 12, y: 6)
+                        .adaptiveGlass()
                 }
                 .sensoryFeedback(.impact(weight: .medium), trigger: showSearch)
                 .padding(.trailing, 20)
