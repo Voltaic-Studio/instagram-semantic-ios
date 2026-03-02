@@ -122,7 +122,7 @@ struct OnboardingView: View {
                 .opacity(appeared ? 1 : 0)
                 .offset(y: appeared ? 0 : 10)
 
-            Text("Find Anyone.\nKnow Everyone.")
+            Text("Find Anyone.\nKnow Everything.")
                 .font(.system(size: 34, weight: .black))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(
@@ -141,7 +141,7 @@ struct OnboardingView: View {
                 .opacity(appeared ? 1 : 0)
                 .offset(y: appeared ? 0 : 20)
 
-            Text("Semantic search across your followers.\nAI-powered. Instant. Unhinged.")
+            Text("Search across your followers & more.\nAI-powered. Instant.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -154,9 +154,7 @@ struct OnboardingView: View {
     private var instagramButton: some View {
         Button {
             buttonPressed = true
-            Task {
-                await viewModel.login(username: "", password: "")
-            }
+            viewModel.isLoggedIn = true
         } label: {
             HStack(spacing: 12) {
                 if viewModel.isLoading {
@@ -226,11 +224,7 @@ struct OnboardingView: View {
     }
 
     private var footerText: some View {
-        Text("your followers are about to be indexed 👀")
-            .font(.system(.caption, design: .monospaced))
-            .foregroundStyle(.tertiary)
-            .opacity(appeared ? 1 : 0)
-            .padding(.top, 4)
+        EmptyView()
     }
 
     private var floatingAvatars: some View {
