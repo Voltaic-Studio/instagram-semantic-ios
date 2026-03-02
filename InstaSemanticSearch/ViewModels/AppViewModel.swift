@@ -2,7 +2,6 @@ import SwiftUI
 
 @Observable
 final class AppViewModel {
-    var hasCompletedOnboarding: Bool = UserDefaults.standard.bool(forKey: "has_completed_onboarding")
     var isLoggedIn: Bool = false
     var currentUser: InstagramUser?
     var isLoading: Bool = false
@@ -13,11 +12,6 @@ final class AppViewModel {
     func checkSession() {
         apiService.loadStoredToken()
         isLoggedIn = apiService.isAuthenticated
-    }
-
-    func completeOnboarding() {
-        hasCompletedOnboarding = true
-        UserDefaults.standard.set(true, forKey: "has_completed_onboarding")
     }
 
     func login(username: String, password: String, twoFactorCode: String? = nil) async {
