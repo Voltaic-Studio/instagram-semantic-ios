@@ -118,7 +118,7 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("InstaSearch")
                     .font(.system(size: 28, weight: .black))
-                Text("your people, decoded ✨")
+                Text("search through your followers ✨")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
