@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 extension View {
     @ViewBuilder
@@ -386,58 +387,59 @@ struct HomeView: View {
     }
 
     private func followerCard(follower: InstagramUser, index: Int) -> some View {
-        VStack(spacing: 8) {
-            Color(.tertiarySystemBackground)
-                .frame(width: 72, height: 72)
-                .overlay {
-                    AsyncImage(url: URL(string: follower.profilePicURL)) { phase in
-                        if let image = phase.image {
-                            image.resizable().aspectRatio(contentMode: .fill)
-                        } else {
-                            ProgressView()
+        Button {
+            openInstagramProfile(for: follower)
+        } label: {
+            VStack(spacing: 8) {
+                Color(.tertiarySystemBackground)
+                    .frame(width: 72, height: 72)
+                    .overlay {
+                        AsyncImage(url: URL(string: follower.profilePicURL)) { phase in
+                            if let image = phase.image {
+                                image.resizable().aspectRatio(contentMode: .fill)
+                            } else {
+                                ProgressView()
+                            }
+                        }
+                        .allowsHitTesting(false)
+                    }
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle()
+                            .stroke(
+                                follower.isVerified == true
+                                    ? Color(red: 0/255, green: 149/255, blue: 246/255).opacity(0.35)
+                                    : .primary.opacity(0.08),
+                                lineWidth: follower.isVerified == true ? 2 : 1
+                            )
+                    )
+
+                VStack(spacing: 2) {
+                    HStack(spacing: 3) {
+                        Text(follower.username)
+                            .font(.caption2.weight(.semibold))
+                            .lineLimit(1)
+                        if follower.isVerified == true {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(Color(red: 0/255, green: 149/255, blue: 246/255))
                         }
                     }
-                    .allowsHitTesting(false)
-                }
-                .clipShape(Circle())
-                .overlay(
-                    Circle()
-                        .stroke(
-                            LinearGradient(
-                                colors: follower.isVerified == true
-                                    ? [.purple, .pink, .orange]
-                                    : [.primary.opacity(0.08)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: follower.isVerified == true ? 2 : 1
-                        )
-                )
 
-            VStack(spacing: 2) {
-                HStack(spacing: 2) {
-                    Text(follower.username)
-                        .font(.caption2.weight(.semibold))
-                        .lineLimit(1)
-                    if follower.isVerified == true {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.system(size: 8))
-                            .foregroundStyle(.blue)
-                    }
+                    Text(follower.followsBack == true ? "Follows you" : "Doesn't follow back")
+                        .font(.caption2)
+                        .foregroundStyle(follower.followsBack == true ? .green : .secondary)
                 }
-
-                Text(follower.followsBack == true ? "Follows you" : "Doesn't follow back")
-                    .font(.caption2)
-                    .foregroundStyle(follower.followsBack == true ? .green : .secondary)
             }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(.rect(cornerRadius: 14))
+            .opacity(appeared ? 1 : 0)
+            .offset(y: appeared ? 0 : 12)
+            .animation(.spring(response: 0.45).delay(Double(index) * 0.03), value: appeared)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(.rect(cornerRadius: 14))
-        .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : 12)
-        .animation(.spring(response: 0.45).delay(Double(index) * 0.03), value: appeared)
+        .buttonStyle(.plain)
     }
 
     private var seeMoreCard: some View {
@@ -562,6 +564,18 @@ struct HomeView: View {
                 .padding(.trailing, 20)
                 .padding(.bottom, 32)
             }
+        }
+    }
+
+    private func openInstagramProfile(for user: InstagramUser) {
+        if let appURL = user.instagramAppURL {
+            UIApplication.shared.open(appURL) { accepted in
+                if !accepted, let webURL = user.instagramWebURL {
+                    UIApplication.shared.open(webURL)
+                }
+            }
+        } else if let webURL = user.instagramWebURL {
+            UIApplication.shared.open(webURL)
         }
     }
 

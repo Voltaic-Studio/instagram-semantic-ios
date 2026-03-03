@@ -84,3 +84,14 @@ nonisolated struct SyncStatus: Codable, Sendable {
         status == "queued" || status == "syncing"
     }
 }
+
+extension InstagramUser {
+    var instagramAppURL: URL? {
+        let encodedUsername = username.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? username
+        return URL(string: "instagram://user?username=\(encodedUsername)")
+    }
+
+    var instagramWebURL: URL? {
+        URL(string: "https://www.instagram.com/\(username)/")
+    }
+}

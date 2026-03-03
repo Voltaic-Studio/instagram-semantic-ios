@@ -49,50 +49,58 @@ struct AccountListSheetView: View {
 
 struct AccountRow: View {
     let user: InstagramUser
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
-        HStack(spacing: 12) {
-            Color(.tertiarySystemBackground)
-                .frame(width: 44, height: 44)
-                .overlay {
-                    AsyncImage(url: URL(string: user.profilePicURL)) { phase in
-                        if let image = phase.image {
-                            image.resizable().aspectRatio(contentMode: .fill)
-                        } else {
-                            Image(systemName: "person.fill")
-                                .foregroundStyle(.tertiary)
+        Button {
+            openInstagramProfile()
+        } label: {
+            HStack(spacing: 12) {
+                Color(.tertiarySystemBackground)
+                    .frame(width: 44, height: 44)
+                    .overlay {
+                        AsyncImage(url: URL(string: user.profilePicURL)) { phase in
+                            if let image = phase.image {
+                                image.resizable().aspectRatio(contentMode: .fill)
+                            } else {
+                                Image(systemName: "person.fill")
+                                    .foregroundStyle(.tertiary)
+                            }
+                        }
+                        .allowsHitTesting(false)
+                    }
+                    .clipShape(Circle())
+
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 4) {
+                        Text(user.username)
+                            .font(.subheadline.weight(.semibold))
+                        if user.isVerified == true {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(Color(red: 0/255, green: 149/255, blue: 246/255))
                         }
                     }
-                    .allowsHitTesting(false)
-                }
-                .clipShape(Circle())
 
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 4) {
-                    Text(user.username)
-                        .font(.subheadline.weight(.semibold))
-                    if user.isVerified == true {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.caption2)
-                            .foregroundStyle(.blue)
-                    }
+                    Text(user.fullName)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
 
-                Text(user.fullName)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+                Spacer()
 
-            Spacer()
-
-            if let count = user.followerCount {
-                Text(formatCount(count))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                if let count = user.followerCount {
+                    Text(formatCount(count))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .contentShape(Rectangle())
+            .foregroundStyle(.primary)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .buttonStyle(.plain)
     }
 
     private func formatCount(_ count: Int) -> String {
@@ -102,5 +110,17 @@ struct AccountRow: View {
             return String(format: "%.1fK", Double(count) / 1_000)
         }
         return "\(count)"
+    }
+
+    private func openInstagramProfile() {
+        if let appURL = user.instagramAppURL {
+            openURL(appURL) { accepted in
+                if !accepted, let webURL = user.instagramWebURL {
+                    openURL(webURL)
+                }
+            }
+        } else if let webURL = user.instagramWebURL {
+            openURL(webURL)
+        }
     }
 }

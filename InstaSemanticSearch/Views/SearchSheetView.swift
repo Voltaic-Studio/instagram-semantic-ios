@@ -257,71 +257,90 @@ struct SearchSheetView: View {
 
 struct SearchResultRow: View {
     let result: SearchResult
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
-        HStack(spacing: 14) {
-            Color(.tertiarySystemBackground)
-                .frame(width: 52, height: 52)
-                .overlay {
-                    AsyncImage(url: URL(string: result.user.profilePicURL)) { phase in
-                        if let image = phase.image {
-                            image.resizable().aspectRatio(contentMode: .fill)
-                        } else {
-                            Image(systemName: "person.fill")
-                                .foregroundStyle(.tertiary)
+        Button {
+            openInstagramProfile()
+        } label: {
+            HStack(spacing: 14) {
+                Color(.tertiarySystemBackground)
+                    .frame(width: 52, height: 52)
+                    .overlay {
+                        AsyncImage(url: URL(string: result.user.profilePicURL)) { phase in
+                            if let image = phase.image {
+                                image.resizable().aspectRatio(contentMode: .fill)
+                            } else {
+                                Image(systemName: "person.fill")
+                                    .foregroundStyle(.tertiary)
+                            }
                         }
+                        .allowsHitTesting(false)
                     }
-                    .allowsHitTesting(false)
-                }
-                .clipShape(Circle())
+                    .clipShape(Circle())
 
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 4) {
-                    Text(result.user.username)
-                        .font(.subheadline.weight(.semibold))
-                    if result.user.isVerified == true {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.caption2)
-                            .foregroundStyle(.blue)
-                    }
-                }
-
-                Text(result.user.fullName)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                if let tags = result.tags, !tags.isEmpty {
+                VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 4) {
-                        ForEach(tags.prefix(3), id: \.self) { tag in
-                            Text(tag)
-                                .font(.caption2)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Color.purple.opacity(0.08))
-                                .clipShape(Capsule())
+                        Text(result.user.username)
+                            .font(.subheadline.weight(.semibold))
+                        if result.user.isVerified == true {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(Color(red: 0/255, green: 149/255, blue: 246/255))
+                        }
+                    }
+
+                    Text(result.user.fullName)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    if let tags = result.tags, !tags.isEmpty {
+                        HStack(spacing: 4) {
+                            ForEach(tags.prefix(3), id: \.self) { tag in
+                                Text(tag)
+                                    .font(.caption2)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Color.purple.opacity(0.08))
+                                    .clipShape(Capsule())
+                            }
                         }
                     }
                 }
-            }
 
-            Spacer()
+                Spacer()
 
-            VStack(alignment: .trailing, spacing: 4) {
-                if let score = result.score {
-                    Text("\(Int(score * 100))%")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.purple)
+                VStack(alignment: .trailing, spacing: 4) {
+                    if let score = result.score {
+                        Text("\(Int(score * 100))%")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(.purple)
+                    }
+
+                    if result.score != nil {
+                        Text("CONFIDENCE")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                    }
                 }
-
-                if result.score != nil {
-                    Text("CONFIDENCE")
-                        .font(.system(size: 9, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                }
             }
+            .padding(12)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(.rect(cornerRadius: 14))
+            .foregroundStyle(.primary)
         }
-        .padding(12)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(.rect(cornerRadius: 14))
+        .buttonStyle(.plain)
+    }
+
+    private func openInstagramProfile() {
+        if let appURL = result.user.instagramAppURL {
+            openURL(appURL) { accepted in
+                if !accepted, let webURL = result.user.instagramWebURL {
+                    openURL(webURL)
+                }
+            }
+        } else if let webURL = result.user.instagramWebURL {
+            openURL(webURL)
+        }
     }
 }
