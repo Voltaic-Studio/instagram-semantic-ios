@@ -47,6 +47,7 @@ class Relationship(Base):
     username: Mapped[str] = mapped_column(String(128), index=True)
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     profile_pic_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_verified: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     relationship_type: Mapped[str] = mapped_column(String(32), index=True)
     snapshot_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
 

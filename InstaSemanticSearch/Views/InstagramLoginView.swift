@@ -37,6 +37,24 @@ struct InstagramLoginView: View {
                     .padding(.horizontal, 32)
 
                     VStack(spacing: 14) {
+                        HStack(alignment: .top, spacing: 10) {
+                            Image(systemName: "info.circle")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 1)
+
+                            Text("Instagram may send a login alert mentioning a new device like 6T Dev. That’s expected during connect.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.leading)
+
+                            Spacer(minLength: 0)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .background(Color(.secondarySystemBackground))
+                        .clipShape(.rect(cornerRadius: 14))
+
                         textField("Username", text: $username, field: .username)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()

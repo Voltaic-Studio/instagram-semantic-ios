@@ -60,6 +60,7 @@ class AccountStore:
                     username=user.username,
                     full_name=user.full_name,
                     profile_pic_url=user.profile_pic_url,
+                    is_verified=user.is_verified,
                     relationship_type=relationship_type,
                 )
             )
@@ -89,4 +90,3 @@ class AccountStore:
             row.captions = captions_by_user.get(profile.id)
             row.tags = tags_by_user.get(profile.id)
             row.embedding = embeddings_by_user.get(profile.id)
-

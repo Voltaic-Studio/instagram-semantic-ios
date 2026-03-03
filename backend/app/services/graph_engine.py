@@ -63,6 +63,6 @@ class GraphEngine:
             follower_count=cached_profile.follower_count if cached_profile else None,
             following_count=cached_profile.following_count if cached_profile else None,
             is_private=cached_profile.is_private if cached_profile else None,
-            is_verified=cached_profile.is_verified if cached_profile else None,
+            is_verified=cached_profile.is_verified if cached_profile and cached_profile.is_verified is not None else row.is_verified,
             follows_back=follows_back,
         )
