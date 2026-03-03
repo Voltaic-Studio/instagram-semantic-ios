@@ -77,7 +77,7 @@ enum ProfileTab: String, CaseIterable {
     case followers = "Who Follows You"
     case following = "Who You Follow"
     case mutuals = "Follow You Back"
-    case nonMutuals = "Don't Follow Back"
+    case nonMutuals = "Doesn't Follow Back"
 
     var icon: String {
         switch self {

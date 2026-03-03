@@ -22,6 +22,7 @@ struct HomeView: View {
     @State private var profileVM: ProfileViewModel
     @State private var appeared: Bool = false
     @State private var lastHandledSyncStatus: String?
+    @State private var activeSheet: HomeAccountSheet?
 
     init(appViewModel: AppViewModel) {
         self.appViewModel = appViewModel
@@ -66,6 +67,11 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showProfile) {
             ProfileOverlayView(viewModel: profileVM, appViewModel: appViewModel)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $activeSheet) { sheet in
+            AccountListSheetView(title: sheet.title, users: sheet.users)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
@@ -225,7 +231,7 @@ struct HomeView: View {
             ("\(stats?.followers ?? 0)", "Followers", "person.2.fill", .purple),
             ("\(stats?.following ?? 0)", "Following", "person.badge.plus", .blue),
             ("\(stats?.mutuals ?? 0)", "Follow you back", "arrow.triangle.2.circlepath.circle.fill", .green),
-            ("\(stats?.nonMutuals ?? 0)", "Following that don't follow back", "person.crop.circle.badge.xmark", .orange)
+            ("\(stats?.nonMutuals ?? 0)", "Doesn't follow back", "person.crop.circle.badge.xmark", .orange)
         ]
 
         return VStack(spacing: 10) {
@@ -245,28 +251,33 @@ struct HomeView: View {
     }
 
     private func statCard(item: (value: String, label: String, icon: String, color: Color), index: Int) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: item.icon)
-                .font(.title3)
-                .foregroundStyle(item.color.opacity(0.8))
-                .frame(width: 32)
+        Button {
+            activeSheet = sheetForStatsLabel(item.label)
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: item.icon)
+                    .font(.title3)
+                    .foregroundStyle(item.color.opacity(0.8))
+                    .frame(width: 32)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(item.value)
-                    .font(.system(.title3, design: .rounded, weight: .bold))
-                Text(item.label)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.value)
+                        .font(.system(.title3, design: .rounded, weight: .bold))
+                    Text(item.label)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+
+                Spacer()
             }
-
-            Spacer()
+            .padding(.horizontal, 14)
+            .padding(.vertical, 14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(.rect(cornerRadius: 14))
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(.rect(cornerRadius: 14))
+        .buttonStyle(.plain)
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 8)
         .animation(.spring(response: 0.4).delay(Double(index) * 0.06), value: appeared)
@@ -324,18 +335,45 @@ struct HomeView: View {
                     .foregroundStyle(.tertiary)
             }
 
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: 10),
-                GridItem(.flexible(), spacing: 10),
-                GridItem(.flexible(), spacing: 10)
-            ], spacing: 10) {
-                ForEach(Array(displayedUsers.prefix(15).enumerated()), id: \.element.id) { index, user in
-                    followerCard(follower: user, index: index)
+            if profileVM.isLoading && displayedUsers.isEmpty {
+                loadingGrid
+            } else {
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: 10),
+                    GridItem(.flexible(), spacing: 10),
+                    GridItem(.flexible(), spacing: 10)
+                ], spacing: 10) {
+                    ForEach(Array(displayedUsers.prefix(15).enumerated()), id: \.element.id) { index, user in
+                        followerCard(follower: user, index: index)
+                    }
+
+                    if displayedUsers.count > 15 {
+                        seeMoreCard
+                    }
                 }
             }
         }
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 15)
+    }
+
+    private var loadingGrid: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 10) {
+                ForEach(0..<3, id: \.self) { _ in
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color(.secondarySystemBackground))
+                        .frame(height: 132)
+                        .overlay {
+                            ProgressView()
+                                .controlSize(.small)
+                        }
+                }
+            }
+            Text("Loading accounts...")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
     }
 
     private var displayedUsers: [InstagramUser] {
@@ -400,6 +438,41 @@ struct HomeView: View {
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 12)
         .animation(.spring(response: 0.45).delay(Double(index) * 0.03), value: appeared)
+    }
+
+    private var seeMoreCard: some View {
+        Button {
+            activeSheet = HomeAccountSheet(
+                title: searchVM.searchScope == .following ? "Who You Follow" : "Who Follows You",
+                users: displayedUsers
+            )
+        } label: {
+            VStack(spacing: 8) {
+                Image(systemName: "ellipsis.circle")
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
+                Text("See more")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.primary)
+            }
+            .frame(maxWidth: .infinity, minHeight: 132)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(.rect(cornerRadius: 14))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func sheetForStatsLabel(_ label: String) -> HomeAccountSheet {
+        switch label {
+        case "Followers":
+            return HomeAccountSheet(title: "Who Follows You", users: profileVM.followers)
+        case "Following":
+            return HomeAccountSheet(title: "Who You Follow", users: profileVM.following)
+        case "Follow you back":
+            return HomeAccountSheet(title: "Follow You Back", users: profileVM.mutuals)
+        default:
+            return HomeAccountSheet(title: "Following That Don't Follow Back", users: profileVM.nonMutuals)
+        }
     }
 
     private var quickSearchChips: some View {
@@ -481,7 +554,7 @@ struct HomeView: View {
                 } label: {
                     Image(systemName: "magnifyingglass")
                         .font(.title2.bold())
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(.purple.opacity(0.8))
                         .frame(width: 60, height: 60)
                         .adaptiveGlass()
                 }
@@ -492,4 +565,10 @@ struct HomeView: View {
         }
     }
 
+}
+
+private struct HomeAccountSheet: Identifiable {
+    let id = UUID()
+    let title: String
+    let users: [InstagramUser]
 }

@@ -6,7 +6,6 @@ struct ProfileOverlayView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var appeared: Bool = false
     @State private var isRefreshingGraph: Bool = false
-    @State private var lastHandledSyncStatus: String?
 
     var body: some View {
         NavigationStack {
@@ -43,13 +42,6 @@ struct ProfileOverlayView: View {
         }
         .task {
             await viewModel.loadData()
-        }
-        .task(id: appViewModel.syncStatus?.status) {
-            let status = appViewModel.syncStatus?.status
-            if lastHandledSyncStatus != status, status == "ready" {
-                await viewModel.loadData(force: true)
-            }
-            lastHandledSyncStatus = status
         }
         .onAppear {
             withAnimation(.easeOut(duration: 0.5)) {
@@ -114,7 +106,7 @@ struct ProfileOverlayView: View {
             ("\(stats?.followers ?? 0)", "Followers", "person.2.fill"),
             ("\(stats?.following ?? 0)", "Following", "person.badge.plus"),
             ("\(stats?.mutuals ?? 0)", "Follow you back", "arrow.triangle.2.circlepath.circle.fill"),
-            ("\(stats?.nonMutuals ?? 0)", "Following that don't follow back", "person.crop.circle.badge.xmark")
+            ("\(stats?.nonMutuals ?? 0)", "Doesn't follow back", "person.crop.circle.badge.xmark")
         ]
 
         return LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
@@ -204,7 +196,7 @@ struct ProfileOverlayView: View {
                 .padding(.vertical, 20)
             } else {
                 ForEach(users) { user in
-                    UserRow(user: user)
+                    AccountRow(user: user)
                     if user.id != users.last?.id {
                         Divider().padding(.leading, 66)
                     }
@@ -287,62 +279,5 @@ struct ProfileOverlayView: View {
             .clipShape(.rect(cornerRadius: 14))
         }
         .disabled(isRefreshingGraph)
-    }
-}
-
-struct UserRow: View {
-    let user: InstagramUser
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Color(.tertiarySystemBackground)
-                .frame(width: 44, height: 44)
-                .overlay {
-                    AsyncImage(url: URL(string: user.profilePicURL)) { phase in
-                        if let image = phase.image {
-                            image.resizable().aspectRatio(contentMode: .fill)
-                        } else {
-                            Image(systemName: "person.fill")
-                                .foregroundStyle(.tertiary)
-                        }
-                    }
-                    .allowsHitTesting(false)
-                }
-                .clipShape(Circle())
-
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 4) {
-                    Text(user.username)
-                        .font(.subheadline.weight(.semibold))
-                    if user.isVerified == true {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.caption2)
-                            .foregroundStyle(.blue)
-                    }
-                }
-                Text(user.fullName)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-
-            if let count = user.followerCount {
-                Text(formatCount(count))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-    }
-
-    private func formatCount(_ count: Int) -> String {
-        if count >= 1_000_000 {
-            return String(format: "%.1fM", Double(count) / 1_000_000)
-        } else if count >= 1_000 {
-            return String(format: "%.1fK", Double(count) / 1_000)
-        }
-        return "\(count)"
     }
 }
