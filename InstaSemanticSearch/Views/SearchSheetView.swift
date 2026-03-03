@@ -5,6 +5,15 @@ struct SearchSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @FocusState private var isSearchFocused: Bool
     @State private var appeared: Bool = false
+    @State private var loadingMessageIndex: Int = 0
+
+    private let loadingMessages = [
+        "Scanning your network...",
+        "Going through a lot of accounts now!",
+        "Taking a little longer, you have quite some followers!",
+        "Checking photos, bios, and captions...",
+        "Finding the closest matches..."
+    ]
 
     var body: some View {
         NavigationStack {
@@ -47,6 +56,20 @@ struct SearchSheetView: View {
             isSearchFocused = true
             withAnimation(.easeOut(duration: 0.4)) {
                 appeared = true
+            }
+        }
+        .task(id: viewModel.isSearching) {
+            guard viewModel.isSearching else {
+                loadingMessageIndex = 0
+                return
+            }
+
+            while viewModel.isSearching {
+                try? await Task.sleep(for: .seconds(1.1))
+                guard viewModel.isSearching else { break }
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    loadingMessageIndex = (loadingMessageIndex + 1) % loadingMessages.count
+                }
             }
         }
         .presentationContentInteraction(.scrolls)
@@ -97,7 +120,7 @@ struct SearchSheetView: View {
                     HStack(spacing: 6) {
                         Image(systemName: scope.icon)
                             .font(.caption)
-                        Text(scope.displayName)
+                        Text(searchSheetLabel(for: scope))
                             .font(.caption.weight(.medium))
                     }
                     .padding(.horizontal, 12)
@@ -123,9 +146,21 @@ struct SearchSheetView: View {
             Spacer().frame(height: 40)
             ProgressView()
                 .scaleEffect(1.2)
-            Text("Searching across profiles...")
-                .font(.caption)
+            Text(loadingMessages[loadingMessageIndex])
+                .font(.caption.weight(.medium))
                 .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .contentTransition(.opacity)
+                .animation(.easeInOut(duration: 0.25), value: loadingMessageIndex)
+        }
+    }
+
+    private func searchSheetLabel(for scope: SearchScope) -> String {
+        switch scope {
+        case .following:
+            return "Following"
+        case .followers:
+            return "Followers"
         }
     }
 

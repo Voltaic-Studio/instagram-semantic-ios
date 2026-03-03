@@ -20,10 +20,6 @@ class QueryRouter:
         self.orchestrator = ModelOrchestrator()
 
     def classify(self, query: str) -> QueryIntent:
-        remote_intent = self._classify_with_openrouter(query)
-        if remote_intent is not None:
-            return remote_intent
-
         lowered = query.lower().strip()
         graph_filter = None
         audience_scope = None
@@ -57,12 +53,20 @@ class QueryRouter:
         if semantic_tokens or graph_filter is None:
             semantic_query = lowered
 
-        return QueryIntent(
+        local_intent = QueryIntent(
             graph_filter=graph_filter,
             semantic_query=semantic_query,
             tags=semantic_tokens or None,
             audience_scope=audience_scope,
         )
+        if graph_filter or audience_scope or semantic_tokens or semantic_query:
+            return local_intent
+
+        remote_intent = self._classify_with_openrouter(query)
+        if remote_intent is not None:
+            return remote_intent
+
+        return local_intent
 
     def _classify_with_openrouter(self, query: str) -> QueryIntent | None:
         data = self.client.chat_json(
