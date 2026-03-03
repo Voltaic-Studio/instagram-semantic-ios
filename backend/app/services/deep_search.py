@@ -51,11 +51,11 @@ class DeepSearchAnalyzer:
         if not self.client.enabled:
             return {}
         reranked: dict[str, tuple[float, list[str]]] = {}
-        shortlisted = candidates[:2]
+        shortlisted = candidates
         if not shortlisted:
             return reranked
 
-        with ThreadPoolExecutor(max_workers=min(2, len(shortlisted))) as executor:
+        with ThreadPoolExecutor(max_workers=min(6, len(shortlisted))) as executor:
             futures = {
                 executor.submit(self._score_candidate, query, candidate): candidate.instagram_user_id
                 for candidate in shortlisted
@@ -115,3 +115,6 @@ class DeepSearchAnalyzer:
     def _is_visual_query(self, query: str) -> bool:
         lowered = query.lower()
         return any(term in lowered for term in self.visual_terms)
+
+    def is_visual_query(self, query: str) -> bool:
+        return self._is_visual_query(query)
