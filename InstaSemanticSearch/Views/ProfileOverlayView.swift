@@ -6,6 +6,7 @@ struct ProfileOverlayView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var appeared: Bool = false
     @State private var isRefreshingGraph: Bool = false
+    @State private var lastHandledSyncStatus: String?
 
     var body: some View {
         NavigationStack {
@@ -44,9 +45,11 @@ struct ProfileOverlayView: View {
             await viewModel.loadData()
         }
         .task(id: appViewModel.syncStatus?.status) {
-            if appViewModel.syncStatus?.status == "ready" {
+            let status = appViewModel.syncStatus?.status
+            if lastHandledSyncStatus != status, status == "ready" {
                 await viewModel.loadData(force: true)
             }
+            lastHandledSyncStatus = status
         }
         .onAppear {
             withAnimation(.easeOut(duration: 0.5)) {
@@ -111,7 +114,7 @@ struct ProfileOverlayView: View {
             ("\(stats?.followers ?? 0)", "Followers", "person.2.fill"),
             ("\(stats?.following ?? 0)", "Following", "person.badge.plus"),
             ("\(stats?.mutuals ?? 0)", "Follow you back", "arrow.triangle.2.circlepath.circle.fill"),
-            ("\(stats?.nonMutuals ?? 0)", "Don't follow back", "person.crop.circle.badge.xmark")
+            ("\(stats?.nonMutuals ?? 0)", "Following that don't follow back", "person.crop.circle.badge.xmark")
         ]
 
         return LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {

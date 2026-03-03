@@ -21,6 +21,7 @@ struct HomeView: View {
     @State private var searchVM: SearchViewModel
     @State private var profileVM: ProfileViewModel
     @State private var appeared: Bool = false
+    @State private var lastHandledSyncStatus: String?
 
     init(appViewModel: AppViewModel) {
         self.appViewModel = appViewModel
@@ -73,9 +74,11 @@ struct HomeView: View {
             await appViewModel.pollSyncStatus()
         }
         .task(id: appViewModel.syncStatus?.status) {
-            if appViewModel.syncStatus?.status == "ready" {
+            let status = appViewModel.syncStatus?.status
+            if lastHandledSyncStatus != status, status == "ready" {
                 await profileVM.loadData(force: true)
             }
+            lastHandledSyncStatus = status
         }
         .onAppear {
             withAnimation(.easeOut(duration: 0.6)) {
@@ -138,6 +141,9 @@ struct HomeView: View {
                     Text(syncStatus.message ?? "Pulling all your followers to then start search!")
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(.primary)
+                    Text("Will take a minute or less")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     ProgressView(value: Double(syncStatus.progress), total: 100)
                         .progressViewStyle(.linear)
                         .tint(.primary.opacity(0.85))
@@ -219,7 +225,7 @@ struct HomeView: View {
             ("\(stats?.followers ?? 0)", "Followers", "person.2.fill", .purple),
             ("\(stats?.following ?? 0)", "Following", "person.badge.plus", .blue),
             ("\(stats?.mutuals ?? 0)", "Follow you back", "arrow.triangle.2.circlepath.circle.fill", .green),
-            ("\(stats?.nonMutuals ?? 0)", "Don't follow back", "person.crop.circle.badge.xmark", .orange)
+            ("\(stats?.nonMutuals ?? 0)", "Following that don't follow back", "person.crop.circle.badge.xmark", .orange)
         ]
 
         return VStack(spacing: 10) {
@@ -308,12 +314,12 @@ struct HomeView: View {
     private var followerGrid: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("WHO YOU FOLLOW")
+                Text(searchVM.searchScope == .following ? "WHO YOU FOLLOW" : "WHO FOLLOWS YOU")
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .tracking(1)
                 Spacer()
-                Text("\(profileVM.following.count) accounts")
+                Text("\(displayedUsers.count) accounts")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }
@@ -323,13 +329,22 @@ struct HomeView: View {
                 GridItem(.flexible(), spacing: 10),
                 GridItem(.flexible(), spacing: 10)
             ], spacing: 10) {
-                ForEach(Array(profileVM.following.prefix(15).enumerated()), id: \.element.id) { index, user in
+                ForEach(Array(displayedUsers.prefix(15).enumerated()), id: \.element.id) { index, user in
                     followerCard(follower: user, index: index)
                 }
             }
         }
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 15)
+    }
+
+    private var displayedUsers: [InstagramUser] {
+        switch searchVM.searchScope {
+        case .following:
+            return profileVM.following
+        case .followers:
+            return profileVM.followers
+        }
     }
 
     private func followerCard(follower: InstagramUser, index: Int) -> some View {
@@ -371,20 +386,11 @@ struct HomeView: View {
                             .font(.system(size: 8))
                             .foregroundStyle(.blue)
                     }
-                    if follower.followsBack == true {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 9))
-                            .foregroundStyle(.green)
-                    } else if follower.followsBack == false {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 9))
-                            .foregroundStyle(.orange)
-                    }
                 }
 
-                Text(formatCount(follower.followerCount ?? 0))
+                Text(follower.followsBack == true ? "Follows you" : "Doesn't follow back")
                     .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(follower.followsBack == true ? .green : .secondary)
             }
         }
         .frame(maxWidth: .infinity)
@@ -486,12 +492,4 @@ struct HomeView: View {
         }
     }
 
-    private func formatCount(_ count: Int) -> String {
-        if count >= 1_000_000 {
-            return String(format: "%.1fM", Double(count) / 1_000_000)
-        } else if count >= 1_000 {
-            return String(format: "%.1fK", Double(count) / 1_000)
-        }
-        return "\(count)"
-    }
 }
