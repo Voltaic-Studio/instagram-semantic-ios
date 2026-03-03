@@ -76,7 +76,8 @@ final class SearchViewModel {
                     followerCount: Int.random(in: 100...50000),
                     followingCount: Int.random(in: 50...2000),
                     isPrivate: false,
-                    isVerified: i < 2
+                    isVerified: i < 2,
+                    followsBack: i % 2 == 0
                 ),
                 score: Double.random(in: 0.7...0.99),
                 matchType: i % 2 == 0 ? "semantic" : "graph",

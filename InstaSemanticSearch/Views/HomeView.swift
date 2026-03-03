@@ -28,25 +28,6 @@ struct HomeView: View {
         _profileVM = State(initialValue: ProfileViewModel(apiService: appViewModel.apiService))
     }
 
-    private let mockFollowers: [(id: String, username: String, fullName: String, picIndex: Int, verified: Bool, followerCount: Int)] = [
-        ("1", "emma.creates", "Emma Johnson", 10, true, 24300),
-        ("2", "jake_photo", "Jake Williams", 11, false, 8900),
-        ("3", "sophia.fit", "Sophia Chen", 12, true, 142000),
-        ("4", "alex.travel", "Alex Rivera", 13, false, 3200),
-        ("5", "mia.art", "Mia Thompson", 14, false, 18700),
-        ("6", "noah.dev", "Noah Kim", 15, true, 56400),
-        ("7", "olivia.style", "Olivia Davis", 16, false, 9100),
-        ("8", "liam.music", "Liam Garcia", 17, false, 31200),
-        ("9", "ava.cooks", "Ava Martinez", 18, false, 7600),
-        ("10", "ethan.game", "Ethan Brown", 19, false, 44500),
-        ("11", "luna.yoga", "Luna Patel", 20, true, 89000),
-        ("12", "mason.tech", "Mason Lee", 21, false, 12400),
-        ("13", "zoe.vibes", "Zoe Anderson", 22, false, 5800),
-        ("14", "kai.beats", "Kai Nakamura", 23, false, 27600),
-        ("15", "iris.design", "Iris Okafor", 24, false, 15300),
-        ("16", "leo.skate", "Leo Rossi", 25, false, 41200),
-    ]
-
     var body: some View {
         ZStack {
             backgroundGradient
@@ -54,6 +35,10 @@ struct HomeView: View {
             ScrollView {
                 VStack(spacing: 24) {
                     headerBar
+
+                    syncBanner
+
+                    statsOverview
 
                     searchBar
 
@@ -85,6 +70,7 @@ struct HomeView: View {
         }
         .task {
             await profileVM.loadData()
+            await appViewModel.pollSyncStatus()
         }
         .onAppear {
             withAnimation(.easeOut(duration: 0.6)) {
@@ -117,7 +103,7 @@ struct HomeView: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text("InstaSearch")
-                    .font(.system(size: 28, weight: .black))
+                    .font(.system(size: 30, weight: .semibold, design: .default))
                 Text("search through your followers ✨")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -134,6 +120,40 @@ struct HomeView: View {
         .padding(.top, 12)
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : -10)
+    }
+
+    @ViewBuilder
+    private var syncBanner: some View {
+        if let syncStatus = appViewModel.syncStatus, syncStatus.isActive {
+            HStack(alignment: .center, spacing: 14) {
+                Text("🫧")
+                    .font(.title3)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(syncStatus.message ?? "Pulling all your followers to then start search!")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.primary)
+                    ProgressView(value: Double(syncStatus.progress), total: 100)
+                        .progressViewStyle(.linear)
+                        .tint(.primary.opacity(0.85))
+                }
+
+                Spacer(minLength: 0)
+
+                Text("\(syncStatus.progress)%")
+                    .font(.system(.caption, design: .rounded, weight: .semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(14)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(Color.white.opacity(0.2), lineWidth: 0.8)
+            )
+            .shadow(color: .black.opacity(0.06), radius: 14, y: 8)
+            .opacity(appeared ? 1 : 0)
+        }
     }
 
     private var profileAvatar: some View {
@@ -188,6 +208,59 @@ struct HomeView: View {
         .offset(y: appeared ? 0 : 10)
     }
 
+    private var statsOverview: some View {
+        let stats = profileVM.stats
+        let items: [(value: String, label: String, icon: String, color: Color)] = [
+            ("\(stats?.followers ?? 0)", "Followers", "person.2.fill", .purple),
+            ("\(stats?.following ?? 0)", "Following", "person.badge.plus", .blue),
+            ("\(stats?.mutuals ?? 0)", "Follow you back", "arrow.triangle.2.circlepath.circle.fill", .green),
+            ("\(stats?.nonMutuals ?? 0)", "Don't follow back", "person.crop.circle.badge.xmark", .orange)
+        ]
+
+        return VStack(spacing: 10) {
+            HStack(spacing: 10) {
+                ForEach(0..<2, id: \.self) { index in
+                    statCard(item: items[index], index: index)
+                }
+            }
+            HStack(spacing: 10) {
+                ForEach(2..<4, id: \.self) { index in
+                    statCard(item: items[index], index: index)
+                }
+            }
+        }
+        .opacity(appeared ? 1 : 0)
+        .offset(y: appeared ? 0 : 10)
+    }
+
+    private func statCard(item: (value: String, label: String, icon: String, color: Color), index: Int) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: item.icon)
+                .font(.title3)
+                .foregroundStyle(item.color.opacity(0.8))
+                .frame(width: 32)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.value)
+                    .font(.system(.title3, design: .rounded, weight: .bold))
+                Text(item.label)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            Spacer()
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(.rect(cornerRadius: 14))
+        .opacity(appeared ? 1 : 0)
+        .offset(y: appeared ? 0 : 8)
+        .animation(.spring(response: 0.4).delay(Double(index) * 0.06), value: appeared)
+    }
+
     private var scopeSelector: some View {
         HStack(spacing: 12) {
             ForEach(SearchScope.allCases, id: \.self) { scope in
@@ -235,7 +308,7 @@ struct HomeView: View {
                     .foregroundStyle(.secondary)
                     .tracking(1)
                 Spacer()
-                Text("\(mockFollowers.count) followers")
+                Text("\(profileVM.followers.count) followers")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }
@@ -245,7 +318,7 @@ struct HomeView: View {
                 GridItem(.flexible(), spacing: 10),
                 GridItem(.flexible(), spacing: 10)
             ], spacing: 10) {
-                ForEach(Array(mockFollowers.enumerated()), id: \.element.id) { index, follower in
+                ForEach(Array(profileVM.followers.prefix(15).enumerated()), id: \.element.id) { index, follower in
                     followerCard(follower: follower, index: index)
                 }
             }
@@ -254,12 +327,12 @@ struct HomeView: View {
         .offset(y: appeared ? 0 : 15)
     }
 
-    private func followerCard(follower: (id: String, username: String, fullName: String, picIndex: Int, verified: Bool, followerCount: Int), index: Int) -> some View {
+    private func followerCard(follower: InstagramUser, index: Int) -> some View {
         VStack(spacing: 8) {
             Color(.tertiarySystemBackground)
                 .frame(width: 72, height: 72)
                 .overlay {
-                    AsyncImage(url: URL(string: "https://i.pravatar.cc/150?img=\(follower.picIndex)")) { phase in
+                    AsyncImage(url: URL(string: follower.profilePicURL)) { phase in
                         if let image = phase.image {
                             image.resizable().aspectRatio(contentMode: .fill)
                         } else {
@@ -273,13 +346,13 @@ struct HomeView: View {
                     Circle()
                         .stroke(
                             LinearGradient(
-                                colors: follower.verified
+                                colors: follower.isVerified == true
                                     ? [.purple, .pink, .orange]
                                     : [.primary.opacity(0.08)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
-                            lineWidth: follower.verified ? 2 : 1
+                            lineWidth: follower.isVerified == true ? 2 : 1
                         )
                 )
 
@@ -288,14 +361,23 @@ struct HomeView: View {
                     Text(follower.username)
                         .font(.caption2.weight(.semibold))
                         .lineLimit(1)
-                    if follower.verified {
+                    if follower.isVerified == true {
                         Image(systemName: "checkmark.seal.fill")
                             .font(.system(size: 8))
                             .foregroundStyle(.blue)
                     }
+                    if follower.followsBack == true {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 9))
+                            .foregroundStyle(.green)
+                    } else if follower.followsBack == false {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 9))
+                            .foregroundStyle(.orange)
+                    }
                 }
 
-                Text(formatCount(follower.followerCount))
+                Text(formatCount(follower.followerCount ?? 0))
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
             }

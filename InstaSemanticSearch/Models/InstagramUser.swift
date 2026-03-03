@@ -10,6 +10,7 @@ nonisolated struct InstagramUser: Codable, Sendable, Identifiable, Hashable {
     let followingCount: Int?
     let isPrivate: Bool?
     let isVerified: Bool?
+    let followsBack: Bool?
 
     nonisolated enum CodingKeys: String, CodingKey {
         case id
@@ -21,6 +22,7 @@ nonisolated struct InstagramUser: Codable, Sendable, Identifiable, Hashable {
         case followingCount = "following_count"
         case isPrivate = "is_private"
         case isVerified = "is_verified"
+        case followsBack = "follows_back"
     }
 }
 
@@ -70,4 +72,15 @@ nonisolated struct APIResponse<T: Codable & Sendable>: Codable, Sendable {
     let success: Bool
     let data: T?
     let message: String?
+}
+
+nonisolated struct SyncStatus: Codable, Sendable {
+    let status: String
+    let message: String?
+    let progress: Int
+    let error: String?
+
+    var isActive: Bool {
+        status == "queued" || status == "syncing"
+    }
 }

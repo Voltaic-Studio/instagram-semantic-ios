@@ -4,6 +4,7 @@ struct OnboardingView: View {
     @Bindable var viewModel: AppViewModel
 
     @State private var appeared: Bool = false
+    @State private var showNativeLogin: Bool = false
     @State private var floatingOffsets: [CGSize] = (0..<35).map { _ in
         CGSize(width: CGFloat.random(in: -200...200), height: CGFloat.random(in: -400...400))
     }
@@ -63,6 +64,16 @@ struct OnboardingView: View {
             floatingAvatars
 
             bottomContent
+        }
+        .overlay(alignment: .bottom) {
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+                    .padding(.bottom, 16)
+            }
         }
         .onAppear {
             withAnimation(.easeOut(duration: 1.0).delay(0.2)) {
@@ -154,18 +165,8 @@ struct OnboardingView: View {
     private var instagramButton: some View {
         Button {
             buttonPressed = true
-            viewModel.currentUser = InstagramUser(
-                id: "mock_user",
-                username: "yourname",
-                fullName: "Your Name",
-                profilePicURL: "https://i.pravatar.cc/150?img=5",
-                bio: "Living my best life",
-                followerCount: 1243,
-                followingCount: 892,
-                isPrivate: false,
-                isVerified: false
-            )
-            viewModel.isLoggedIn = true
+            viewModel.errorMessage = nil
+            showNativeLogin = true
         } label: {
             HStack(spacing: 12) {
                 if viewModel.isLoading {
@@ -213,6 +214,9 @@ struct OnboardingView: View {
                     buttonPressed = false
                 }
             }
+        }
+        .fullScreenCover(isPresented: $showNativeLogin) {
+            InstagramLoginView(viewModel: viewModel)
         }
     }
 

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var appViewModel = AppViewModel()
+    @Bindable var appViewModel: AppViewModel
 
     var body: some View {
         Group {

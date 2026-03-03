@@ -21,7 +21,9 @@ final class ProfileViewModel {
         async let statsTask: () = loadStats()
         async let followersTask: () = loadFollowers()
         async let followingTask: () = loadFollowing()
-        _ = await (statsTask, followersTask, followingTask)
+        async let mutualsTask: () = loadMutuals()
+        async let nonMutualsTask: () = loadNonMutuals()
+        _ = await (statsTask, followersTask, followingTask, mutualsTask, nonMutualsTask)
         isLoading = false
     }
 
@@ -49,6 +51,22 @@ final class ProfileViewModel {
         }
     }
 
+    private func loadMutuals() async {
+        do {
+            mutuals = try await apiService.fetchMutuals()
+        } catch {
+            mutuals = []
+        }
+    }
+
+    private func loadNonMutuals() async {
+        do {
+            nonMutuals = try await apiService.fetchNonMutuals()
+        } catch {
+            nonMutuals = []
+        }
+    }
+
     var sampleUsers: [InstagramUser] {
         (0..<12).map { i in
             InstagramUser(
@@ -60,7 +78,8 @@ final class ProfileViewModel {
                 followerCount: Int.random(in: 200...80000),
                 followingCount: nil,
                 isPrivate: false,
-                isVerified: i < 3
+                isVerified: i < 3,
+                followsBack: i % 2 == 0
             )
         }
     }
