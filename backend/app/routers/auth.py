@@ -20,6 +20,7 @@ from app.services.auth_tokens import create_access_token
 from app.services.enrichment import EnrichmentService
 from app.services.graph_engine import GraphEngine
 from app.services.instagram_client import InstagramAuthError, InstagramClientService, InstagramTwoFactorRequired
+from app.services.sync_scheduler import queue_account_refresh
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -260,14 +261,20 @@ def me(current_account: Account = Depends(get_current_account)) -> InstagramUser
 
 
 @router.post("/refresh")
-def refresh(current_account: Account = Depends(get_current_account), db: Session = Depends(get_db)) -> dict[str, str]:
-    try:
-        _sync_graph(db, current_account)
-    except InstagramAuthError as exc:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
-    return {"status": "ok"}
+def refresh(
+    background_tasks: BackgroundTasks,
+    current_account: Account = Depends(get_current_account),
+    db: Session = Depends(get_db),
+) -> dict[str, str]:
+    queued = queue_account_refresh(background_tasks, db, current_account, _sync_graph_for_account)
+    return {"status": "queued" if queued else "noop"}
 
 
 @router.get("/sync-status", response_model=SyncStatusResponse)
-def sync_status(current_account: Account = Depends(get_current_account)) -> SyncStatusResponse:
+def sync_status(
+    background_tasks: BackgroundTasks,
+    current_account: Account = Depends(get_current_account),
+    db: Session = Depends(get_db),
+) -> SyncStatusResponse:
+    queue_account_refresh(background_tasks, db, current_account, _sync_graph_for_account)
     return _serialize_sync_status(current_account)

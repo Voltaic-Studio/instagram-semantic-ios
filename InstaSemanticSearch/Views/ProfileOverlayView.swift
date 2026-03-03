@@ -5,6 +5,7 @@ struct ProfileOverlayView: View {
     @Bindable var appViewModel: AppViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var appeared: Bool = false
+    @State private var isRefreshingGraph: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -17,6 +18,8 @@ struct ProfileOverlayView: View {
                     tabSelector
 
                     userList
+
+                    refreshButton
 
                     logoutButton
 
@@ -39,6 +42,11 @@ struct ProfileOverlayView: View {
         }
         .task {
             await viewModel.loadData()
+        }
+        .task(id: appViewModel.syncStatus?.status) {
+            if appViewModel.syncStatus?.status == "ready" {
+                await viewModel.loadData(force: true)
+            }
         }
         .onAppear {
             withAnimation(.easeOut(duration: 0.5)) {
@@ -186,9 +194,9 @@ struct ProfileOverlayView: View {
                 .padding(.vertical, 40)
             } else if users.isEmpty {
                 ContentUnavailableView(
-                    "No users yet",
+                    emptyStateTitle,
                     systemImage: "person.slash",
-                    description: Text("Connect your backend to see real data.")
+                    description: Text(emptyStateMessage)
                 )
                 .padding(.vertical, 20)
             } else {
@@ -202,6 +210,32 @@ struct ProfileOverlayView: View {
         }
         .background(Color(.secondarySystemBackground))
         .clipShape(.rect(cornerRadius: 16))
+    }
+
+    private var emptyStateTitle: String {
+        switch viewModel.selectedTab {
+        case .followers: "No followers loaded yet"
+        case .following: "No following loaded yet"
+        case .mutuals: "No follow-backs yet"
+        case .nonMutuals: "No non-follow-backs found"
+        }
+    }
+
+    private var emptyStateMessage: String {
+        if appViewModel.syncStatus?.isActive == true {
+            return "Your account is still syncing. This list will fill in automatically."
+        }
+
+        switch viewModel.selectedTab {
+        case .followers:
+            return "We couldn't find any followers for this account yet."
+        case .following:
+            return "We couldn't find any accounts you follow yet."
+        case .mutuals:
+            return "No accounts that follow you back were found yet."
+        case .nonMutuals:
+            return "No accounts that don't follow you back were found yet."
+        }
     }
 
     private var logoutButton: some View {
@@ -219,6 +253,37 @@ struct ProfileOverlayView: View {
             .background(Color(.secondarySystemBackground))
             .clipShape(.rect(cornerRadius: 14))
         }
+    }
+
+    private var refreshButton: some View {
+        Button {
+            Task {
+                isRefreshingGraph = true
+                defer { isRefreshingGraph = false }
+                do {
+                    try await appViewModel.apiService.refreshGraph()
+                    await appViewModel.refreshSyncStatus()
+                } catch {
+                    appViewModel.errorMessage = "Could not start a refresh right now."
+                }
+            }
+        } label: {
+            HStack(spacing: 8) {
+                if isRefreshingGraph {
+                    ProgressView()
+                        .controlSize(.small)
+                } else {
+                    Image(systemName: "arrow.clockwise")
+                }
+                Text("Re-update your latest following")
+            }
+            .font(.subheadline.weight(.medium))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(.rect(cornerRadius: 14))
+        }
+        .disabled(isRefreshingGraph)
     }
 }
 

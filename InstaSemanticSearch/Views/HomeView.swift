@@ -74,7 +74,7 @@ struct HomeView: View {
         }
         .task(id: appViewModel.syncStatus?.status) {
             if appViewModel.syncStatus?.status == "ready" {
-                await profileVM.loadData()
+                await profileVM.loadData(force: true)
             }
         }
         .onAppear {

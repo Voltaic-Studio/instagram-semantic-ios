@@ -9,6 +9,7 @@ final class ProfileViewModel {
     var nonMutuals: [InstagramUser] = []
     var isLoading: Bool = false
     var selectedTab: ProfileTab = .followers
+    private var hasLoadedData: Bool = false
 
     private let apiService: APIService
 
@@ -16,7 +17,10 @@ final class ProfileViewModel {
         self.apiService = apiService
     }
 
-    func loadData() async {
+    func loadData(force: Bool = false) async {
+        if hasLoadedData && !force {
+            return
+        }
         isLoading = true
         async let statsTask: () = loadStats()
         async let followersTask: () = loadFollowers()
@@ -24,6 +28,7 @@ final class ProfileViewModel {
         async let mutualsTask: () = loadMutuals()
         async let nonMutualsTask: () = loadNonMutuals()
         _ = await (statsTask, followersTask, followingTask, mutualsTask, nonMutualsTask)
+        hasLoadedData = true
         isLoading = false
     }
 
@@ -69,8 +74,8 @@ final class ProfileViewModel {
 }
 
 enum ProfileTab: String, CaseIterable {
-    case followers = "Followers"
-    case following = "Following"
+    case followers = "Who Follows You"
+    case following = "Who You Follow"
     case mutuals = "Follow You Back"
     case nonMutuals = "Don't Follow Back"
 
