@@ -114,10 +114,22 @@ final class APIService {
             throw APIError.invalidResponse
         }
         guard (200...299).contains(httpResponse.statusCode) else {
-            let message = String(data: data, encoding: .utf8) ?? "Request failed"
+            let rawMessage = String(data: data, encoding: .utf8) ?? "Request failed"
+            let message = sanitizeServerMessage(rawMessage)
             print("[APIService] Server error status=\(httpResponse.statusCode) body=\(message)")
             throw APIError.server(message)
         }
+    }
+
+    private func sanitizeServerMessage(_ message: String) -> String {
+        if message.lowercased().contains("<html") || message.lowercased().contains("<!doctype html") {
+            return "Server returned an HTML error page."
+        }
+        let trimmed = message.replacingOccurrences(of: "\n", with: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.count > 280 {
+            return String(trimmed.prefix(280)) + "..."
+        }
+        return trimmed
     }
 }
 
@@ -149,20 +161,20 @@ enum APIError: LocalizedError {
 nonisolated struct EmptyResponse: Codable, Sendable {}
 
 nonisolated enum SearchScope: String, CaseIterable, Sendable {
+    case following
     case followers
-    case all
 
     var displayName: String {
         switch self {
-        case .followers: "My Followers"
-        case .all: "All Accounts"
+        case .following: "Who You Follow"
+        case .followers: "Who Follows You"
         }
     }
 
     var icon: String {
         switch self {
+        case .following: "person.badge.plus"
         case .followers: "person.2"
-        case .all: "globe"
         }
     }
 }

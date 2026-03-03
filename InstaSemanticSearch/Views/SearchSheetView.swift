@@ -124,7 +124,7 @@ struct SearchSheetView: View {
             ProgressView()
                 .scaleEffect(1.2)
             Text("Searching across profiles...")
-                .font(.system(.caption, design: .monospaced))
+                .font(.caption)
                 .foregroundStyle(.secondary)
         }
     }
@@ -149,7 +149,7 @@ struct SearchSheetView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("\(viewModel.results.count) RESULTS")
-                    .font(.system(.caption2, design: .monospaced, weight: .semibold))
+                    .font(.caption2.weight(.semibold))
                     .foregroundStyle(.secondary)
                 Spacer()
             }
@@ -259,7 +259,7 @@ struct SearchResultRow: View {
                     HStack(spacing: 4) {
                         ForEach(tags.prefix(3), id: \.self) { tag in
                             Text(tag)
-                                .font(.system(.caption2, design: .monospaced))
+                                .font(.caption2)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
                                 .background(Color.purple.opacity(0.08))
@@ -274,13 +274,13 @@ struct SearchResultRow: View {
             VStack(alignment: .trailing, spacing: 4) {
                 if let score = result.score {
                     Text("\(Int(score * 100))%")
-                        .font(.system(.caption, design: .monospaced, weight: .bold))
+                        .font(.caption.weight(.bold))
                         .foregroundStyle(.purple)
                 }
 
-                if let matchType = result.matchType {
-                    Text(matchType.uppercased())
-                        .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                if result.score != nil {
+                    Text("CONFIDENCE")
+                        .font(.system(size: 9, weight: .semibold))
                         .foregroundStyle(.secondary)
                 }
             }

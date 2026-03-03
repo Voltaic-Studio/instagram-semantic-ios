@@ -102,8 +102,8 @@ struct ProfileOverlayView: View {
         let items: [(String, String, String)] = [
             ("\(stats?.followers ?? 0)", "Followers", "person.2.fill"),
             ("\(stats?.following ?? 0)", "Following", "person.badge.plus"),
-            ("\(stats?.mutuals ?? 0)", "Mutuals", "arrow.left.arrow.right"),
-            ("\(stats?.nonMutuals ?? 0)", "Don't follow back", "person.fill.xmark")
+            ("\(stats?.mutuals ?? 0)", "Follow you back", "arrow.triangle.2.circlepath.circle.fill"),
+            ("\(stats?.nonMutuals ?? 0)", "Don't follow back", "person.crop.circle.badge.xmark")
         ]
 
         return LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {

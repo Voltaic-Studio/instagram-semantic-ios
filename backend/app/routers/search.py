@@ -15,9 +15,8 @@ search_service = SearchService()
 @router.get("/semantic-search", response_model=list[SearchResultResponse])
 def semantic_search(
     query: str = Query(..., min_length=1),
-    scope: str = Query(default="followers"),
+    scope: str = Query(default="following"),
     current_account: Account = Depends(get_current_account),
     db: Session = Depends(get_db),
 ) -> list[SearchResultResponse]:
     return search_service.search(db, current_account, query=query, scope=scope)
-

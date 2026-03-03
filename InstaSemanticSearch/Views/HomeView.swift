@@ -72,6 +72,11 @@ struct HomeView: View {
             await profileVM.loadData()
             await appViewModel.pollSyncStatus()
         }
+        .task(id: appViewModel.syncStatus?.status) {
+            if appViewModel.syncStatus?.status == "ready" {
+                await profileVM.loadData()
+            }
+        }
         .onAppear {
             withAnimation(.easeOut(duration: 0.6)) {
                 appeared = true
@@ -303,12 +308,12 @@ struct HomeView: View {
     private var followerGrid: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("YOUR PEOPLE")
+                Text("WHO YOU FOLLOW")
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .tracking(1)
                 Spacer()
-                Text("\(profileVM.followers.count) followers")
+                Text("\(profileVM.following.count) accounts")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }
@@ -318,8 +323,8 @@ struct HomeView: View {
                 GridItem(.flexible(), spacing: 10),
                 GridItem(.flexible(), spacing: 10)
             ], spacing: 10) {
-                ForEach(Array(profileVM.followers.prefix(15).enumerated()), id: \.element.id) { index, follower in
-                    followerCard(follower: follower, index: index)
+                ForEach(Array(profileVM.following.prefix(15).enumerated()), id: \.element.id) { index, user in
+                    followerCard(follower: user, index: index)
                 }
             }
         }

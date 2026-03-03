@@ -11,6 +11,7 @@ class QueryIntent:
     graph_filter: str | None = None
     semantic_query: str | None = None
     tags: list[str] | None = None
+    audience_scope: str | None = None
 
 
 class QueryRouter:
@@ -25,17 +26,43 @@ class QueryRouter:
 
         lowered = query.lower().strip()
         graph_filter = None
+        audience_scope = None
         if "don't follow me back" in lowered or "dont follow me back" in lowered or "non mutual" in lowered:
             graph_filter = "non_mutuals"
         elif "mutual" in lowered:
             graph_filter = "mutuals"
+
+        follower_markers = [
+            "people that follow me",
+            "people who follow me",
+            "my followers",
+            "from the people that follow me",
+            "from my followers",
+        ]
+        following_markers = [
+            "people i follow",
+            "people who i follow",
+            "who i follow",
+            "accounts i follow",
+            "my following",
+            "who you follow",
+        ]
+        if any(marker in lowered for marker in follower_markers):
+            audience_scope = "followers"
+        elif any(marker in lowered for marker in following_markers):
+            audience_scope = "following"
 
         semantic_query = None
         semantic_tokens = [token for token in ["blonde", "fitness", "travel", "photography", "music"] if token in lowered]
         if semantic_tokens or graph_filter is None:
             semantic_query = lowered
 
-        return QueryIntent(graph_filter=graph_filter, semantic_query=semantic_query, tags=semantic_tokens or None)
+        return QueryIntent(
+            graph_filter=graph_filter,
+            semantic_query=semantic_query,
+            tags=semantic_tokens or None,
+            audience_scope=audience_scope,
+        )
 
     def _classify_with_openrouter(self, query: str) -> QueryIntent | None:
         data = self.client.chat_json(
@@ -44,8 +71,9 @@ class QueryRouter:
                 {
                     "role": "system",
                     "content": (
-                        "Return strict JSON with keys graph_filter, semantic_query, tags. "
+                        "Return strict JSON with keys graph_filter, semantic_query, tags, audience_scope. "
                         "graph_filter must be null, mutuals, or non_mutuals. "
+                        "audience_scope must be null, followers, or following. "
                         "tags must be an array of lowercase attribute or interest tags."
                     ),
                 },
@@ -59,4 +87,5 @@ class QueryRouter:
             graph_filter=data.get("graph_filter") if data.get("graph_filter") in {None, "mutuals", "non_mutuals"} else None,
             semantic_query=data.get("semantic_query") if isinstance(data.get("semantic_query"), str) else None,
             tags=[str(tag).strip().lower() for tag in tags] if isinstance(tags, list) else None,
+            audience_scope=data.get("audience_scope") if data.get("audience_scope") in {None, "followers", "following"} else None,
         )

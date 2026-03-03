@@ -31,7 +31,7 @@ final class ProfileViewModel {
         do {
             stats = try await apiService.fetchProfileStats()
         } catch {
-            stats = ProfileStats(followers: 1243, following: 892, mutuals: 654, nonMutuals: 238, profileViews: 47)
+            stats = nil
         }
     }
 
@@ -39,7 +39,7 @@ final class ProfileViewModel {
         do {
             followers = try await apiService.fetchFollowers()
         } catch {
-            followers = sampleUsers
+            followers = []
         }
     }
 
@@ -47,7 +47,7 @@ final class ProfileViewModel {
         do {
             following = try await apiService.fetchFollowing()
         } catch {
-            following = sampleUsers
+            following = []
         }
     }
 
@@ -66,37 +66,20 @@ final class ProfileViewModel {
             nonMutuals = []
         }
     }
-
-    var sampleUsers: [InstagramUser] {
-        (0..<12).map { i in
-            InstagramUser(
-                id: "sample_\(i)",
-                username: ["emma.creates", "jake_photo", "sophia.fit", "alex.travel", "mia.art", "noah.dev", "olivia.style", "liam.music", "ava.cooks", "ethan.game", "luna.yoga", "mason.tech"][i],
-                fullName: ["Emma Creates", "Jake Photo", "Sophia Fit", "Alex Travel", "Mia Art", "Noah Dev", "Olivia Style", "Liam Music", "Ava Cooks", "Ethan Game", "Luna Yoga", "Mason Tech"][i],
-                profilePicURL: "https://i.pravatar.cc/150?img=\(i + 10)",
-                bio: nil,
-                followerCount: Int.random(in: 200...80000),
-                followingCount: nil,
-                isPrivate: false,
-                isVerified: i < 3,
-                followsBack: i % 2 == 0
-            )
-        }
-    }
 }
 
 enum ProfileTab: String, CaseIterable {
     case followers = "Followers"
     case following = "Following"
-    case mutuals = "Mutuals"
-    case nonMutuals = "Non-Mutuals"
+    case mutuals = "Follow You Back"
+    case nonMutuals = "Don't Follow Back"
 
     var icon: String {
         switch self {
         case .followers: "person.2.fill"
         case .following: "person.badge.plus"
-        case .mutuals: "arrow.left.arrow.right"
-        case .nonMutuals: "person.fill.xmark"
+        case .mutuals: "arrow.triangle.2.circlepath.circle.fill"
+        case .nonMutuals: "person.crop.circle.badge.xmark"
         }
     }
 }

@@ -19,14 +19,24 @@ class DeepSearchAnalyzer:
             return {}
         if not self.client.enabled:
             return {}
-
-        instagram_client = self.instagram.get_client_from_settings(account.encrypted_settings)
+        try:
+            instagram_client = self.instagram.get_client_from_settings(account.encrypted_settings)
+        except Exception:
+            return {}
         reranked: dict[str, tuple[float, list[str]]] = {}
 
-        for candidate in candidates[:8]:
-            context = self.instagram.fetch_candidate_context(instagram_client, candidate.instagram_user_id)
-            score, tags = self._score_candidate(query, candidate, context)
-            reranked[candidate.instagram_user_id] = (score, tags)
+        for candidate in candidates[:3]:
+            try:
+                context = self.instagram.fetch_candidate_context(
+                    instagram_client,
+                    candidate.instagram_user_id,
+                    media_amount=3,
+                    story_amount=2,
+                )
+                score, tags = self._score_candidate(query, candidate, context)
+                reranked[candidate.instagram_user_id] = (score, tags)
+            except Exception:
+                continue
 
         return reranked
 

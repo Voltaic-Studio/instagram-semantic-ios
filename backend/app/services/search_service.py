@@ -21,6 +21,7 @@ class SearchService:
     def search(self, db: Session, account: Account, query: str, scope: str) -> list[SearchResultResponse]:
         intent = self.router.classify(query)
         candidate_ids: set[str] | None = None
+        effective_scope = intent.audience_scope or scope or "following"
 
         if intent.graph_filter == "non_mutuals":
             candidate_ids = {user.id for user in self.graph_engine.non_mutuals(db, account)}
@@ -28,9 +29,12 @@ class SearchService:
             candidate_ids = {user.id for user in self.graph_engine.mutuals(db, account)}
 
         rows = db.scalars(select(ProfileCache).where(ProfileCache.owner_account_id == account.id)).all()
-        if scope == "followers":
+        if effective_scope == "followers":
             follower_ids = {user.id for user in self.graph_engine.followers(db, account)}
             rows = [row for row in rows if row.instagram_user_id in follower_ids]
+        elif effective_scope == "following":
+            following_ids = {user.id for user in self.graph_engine.following(db, account)}
+            rows = [row for row in rows if row.instagram_user_id in following_ids]
         if candidate_ids is not None:
             rows = [row for row in rows if row.instagram_user_id in candidate_ids]
         if intent.tags:
@@ -71,7 +75,7 @@ class SearchService:
             )
 
         results.sort(key=lambda item: item.score or 0.0, reverse=True)
-        deep_candidates = [row_by_id[result.id] for result in results[:8] if result.id in row_by_id]
+        deep_candidates = [row_by_id[result.id] for result in results[:3] if result.id in row_by_id]
         deep_scores = self.deep_search.rerank(account, query, deep_candidates)
         if deep_scores:
             reranked_results: list[SearchResultResponse] = []
