@@ -15,12 +15,16 @@ from app.db.models import Account, ProfileCache
 from app.dependencies import get_current_account
 from app.schemas.auth import AuthStartResponse, LoginRequest, LoginResponse, SyncStatusResponse
 from app.schemas.common import InstagramUserResponse
-from app.services.account_store import AccountStore
-from app.services.auth_tokens import create_access_token
-from app.services.enrichment import EnrichmentService
-from app.services.graph_engine import GraphEngine
-from app.services.instagram_client import InstagramAuthError, InstagramClientService, InstagramTwoFactorRequired
-from app.services.sync_scheduler import queue_account_refresh
+from app.services.ai.enrichment import EnrichmentService
+from app.services.auth.auth_tokens import create_access_token
+from app.services.graph.graph_engine import GraphEngine
+from app.services.graph.sync_scheduler import queue_account_refresh
+from app.services.instagram.client import (
+    InstagramAuthError,
+    InstagramClientService,
+    InstagramTwoFactorRequired,
+)
+from app.services.storage.account_store import AccountStore
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])

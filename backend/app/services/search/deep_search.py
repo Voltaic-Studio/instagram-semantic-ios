@@ -4,8 +4,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import logging
 
 from app.db.models import Account, ProfileCache
-from app.services.model_orchestrator import ModelOrchestrator
-from app.services.openrouter_client import OpenRouterClient
+from app.services.ai.model_orchestrator import ModelOrchestrator
+from app.services.ai.openrouter_client import OpenRouterClient
 
 
 logger = logging.getLogger(__name__)

@@ -4,7 +4,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.db.models import Account, ProfileCache, Relationship
-from app.services.instagram_client import InstagramProfile
+from app.services.instagram.client import InstagramProfile
 
 
 class AccountStore:

@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 import re
 
-from app.services.openrouter_client import OpenRouterClient
+from app.services.ai.openrouter_client import OpenRouterClient
 
 
 class EmbeddingService:

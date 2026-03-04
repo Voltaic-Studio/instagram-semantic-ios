@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from app.config import get_settings
-from app.services.crypto import xor_decrypt, xor_encrypt
+from app.services.auth.crypto import xor_decrypt, xor_encrypt
 
 try:
     from instagrapi import Client

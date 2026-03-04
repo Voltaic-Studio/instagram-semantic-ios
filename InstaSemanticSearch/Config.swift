@@ -8,7 +8,7 @@
 import Foundation
 
 enum Config {
-    static let backendBaseURL = "https://instagram-semantic-ios.onrender.com"
+    static let backendBaseURL = "https://28ba-50-203-90-168.ngrok-free.app"
     static let authCallbackScheme = ProcessInfo.processInfo.environment["AUTH_CALLBACK_SCHEME"] ?? "instasemantic"
     static let authCallbackHost = ProcessInfo.processInfo.environment["AUTH_CALLBACK_HOST"] ?? "auth-callback"
 }

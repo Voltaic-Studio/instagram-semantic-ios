@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from app.services.model_orchestrator import ModelOrchestrator
-from app.services.openrouter_client import OpenRouterClient
+from app.services.ai.model_orchestrator import ModelOrchestrator
+from app.services.ai.openrouter_client import OpenRouterClient
 
 
 class VisionTagger:

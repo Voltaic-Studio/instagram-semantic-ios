@@ -3,10 +3,10 @@ from __future__ import annotations
 import time
 
 from app.db.models import Account
-from app.services.account_store import AccountStore
-from app.services.embeddings import EmbeddingService
-from app.services.instagram_client import InstagramClientService, InstagramProfile
-from app.services.vlm import VisionTagger
+from app.services.ai.embeddings import EmbeddingService
+from app.services.ai.vlm import VisionTagger
+from app.services.instagram.client import InstagramClientService, InstagramProfile
+from app.services.storage.account_store import AccountStore
 
 
 class EnrichmentService:

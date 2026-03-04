@@ -8,10 +8,10 @@ from sqlalchemy.orm import Session
 
 from app.db.models import Account, ProfileCache, Relationship
 from app.schemas.common import InstagramUserResponse, SearchResultResponse
-from app.services.deep_search import DeepSearchAnalyzer
-from app.services.embeddings import EmbeddingService
-from app.services.graph_engine import GraphEngine
-from app.services.query_router import QueryRouter
+from app.services.ai.embeddings import EmbeddingService
+from app.services.graph.graph_engine import GraphEngine
+from app.services.search.deep_search import DeepSearchAnalyzer
+from app.services.search.query_router import QueryRouter
 
 
 logger = logging.getLogger(__name__)

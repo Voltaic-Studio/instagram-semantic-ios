@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.db.models import Account
-from app.services.auth_tokens import decode_access_token
+from app.services.auth.auth_tokens import decode_access_token
 
 
 def get_current_account(
@@ -25,4 +25,3 @@ def get_current_account(
     if account is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Account not found")
     return account
-

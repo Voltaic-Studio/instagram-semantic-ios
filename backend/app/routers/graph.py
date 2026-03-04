@@ -5,8 +5,8 @@ from app.db.database import get_db
 from app.db.models import Account
 from app.dependencies import get_current_account
 from app.schemas.common import InstagramUserResponse, ProfileStatsResponse
-from app.services.graph_engine import GraphEngine
-from app.services.sync_scheduler import queue_account_refresh
+from app.services.graph.graph_engine import GraphEngine
+from app.services.graph.sync_scheduler import queue_account_refresh
 from app.routers.auth import _sync_graph_for_account
 
 
