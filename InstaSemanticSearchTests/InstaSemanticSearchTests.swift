@@ -2,7 +2,7 @@
 //  InstaSemanticSearchTests.swift
 //  InstaSemanticSearchTests
 //
-//  Created by Rork on March 2, 2026.
+//  Created on March 2, 2026.
 //
 
 import Testing
