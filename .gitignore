@@ -1,22 +1,3 @@
-.env
-
-# Xcode
-build/
-DerivedData/
-*.xcuserstate
-*.xcuserdatad/
-xcuserdata/
-
-# Swift Package Manager
-.build/
-.swiftpm/
-Package.resolved
-
-# macOS
-.DS_Store
-*.swp
-*~
-
-core
 node_modules
+.env
 .expo
