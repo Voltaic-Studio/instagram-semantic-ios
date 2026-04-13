@@ -1,14 +1,22 @@
 // Config.swift - Auto-generated at build time
-// Environment variables from Project Settings are injected here
-//
-// Usage: Config.YOUR_ENV_NAME
-// Example: If you set MY_API_KEY in Environment Variables,
-//          use Config.MY_API_KEY in your code
+// Virtual read-only view of public environment variables available to Swift code
 
 import Foundation
 
 enum Config {
-    static let backendBaseURL = "https://28ba-50-203-90-168.ngrok-free.app"
-    static let authCallbackScheme = ProcessInfo.processInfo.environment["AUTH_CALLBACK_SCHEME"] ?? "instasemantic"
-    static let authCallbackHost = ProcessInfo.processInfo.environment["AUTH_CALLBACK_HOST"] ?? "auth-callback"
+    static let EXPO_PUBLIC_PROJECT_ID = ""
+    static let EXPO_PUBLIC_RORK_API_BASE_URL = ""
+    static let EXPO_PUBLIC_RORK_AUTH_URL = ""
+    static let EXPO_PUBLIC_RORK_TOOLKIT_SECRET_KEY = ""
+    static let EXPO_PUBLIC_TEAM_ID = ""
+    static let EXPO_PUBLIC_TOOLKIT_URL = ""
+
+    static let allValues: [String: String] = [
+        "EXPO_PUBLIC_PROJECT_ID": EXPO_PUBLIC_PROJECT_ID,
+        "EXPO_PUBLIC_RORK_API_BASE_URL": EXPO_PUBLIC_RORK_API_BASE_URL,
+        "EXPO_PUBLIC_RORK_AUTH_URL": EXPO_PUBLIC_RORK_AUTH_URL,
+        "EXPO_PUBLIC_RORK_TOOLKIT_SECRET_KEY": EXPO_PUBLIC_RORK_TOOLKIT_SECRET_KEY,
+        "EXPO_PUBLIC_TEAM_ID": EXPO_PUBLIC_TEAM_ID,
+        "EXPO_PUBLIC_TOOLKIT_URL": EXPO_PUBLIC_TOOLKIT_URL,
+    ]
 }
